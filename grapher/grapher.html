@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset=utf-8 />
+    <title>Graphing Generator</title>
+<link href="grapher.css" rel="stylesheet" type="text/css">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/0.15.0/math.min.js"></script>
+  </head>
+  <body>
+    <input id="inputField"><input type="button" id="show" onclick="show()" value="Show"><br><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <script>
+        function show()
+        {
+            var canvas = $('#myCanvas')[0],
+            c = canvas.getContext('2d'),
+   n = 100,
+  
+ 
+  xMin = -10,
+  xMax = 10,
+  yMin = -10,
+  yMax = 10,
+  
+  
+  math = mathjs(),
+  expr = '',
+  scope = {
+    x: 0,
+    t: 0
+  },
+ tree,
+
+ 
+  time = 0,
+  timeIncrement = 0.1;
+
+setExprFromHash();
+initTextField();
+startAnimation();
+
+window.addEventListener('hashchange', setExprFromHash);
+
+function setExprFromHash(){
+
+//    c.scale(0.5,0.5);
+var hash = getHashValue();
+if(hash){
+  // c.scale(0.5,0.5);
+  setExpr(hash);
+} else {
+  // c.scale(0.5,0.5);
+  setExpr(defaultExpr);
+  setHashValue(expr);
+}
+
+$('#inputField').val(expr);
+}
+function setExpr(newExpr){
+expr = newExpr;
+tree = math.parse(expr, scope);
+}
+
+function initTextField(){
+var input = $('#inputField');
+input.val(expr);
+
+// Listen for changes using jQuery.
+input.keyup(function (event) {
+  setExpr(input.val());
+  setHashValue(expr);
+});
+}
+
+function startAnimation(){
+(function animloop(){
+  
+  render();
+}());
+}
+function render(){
+drawCurve();
+}
+function drawCurve(){
+var i, 
+    xPixel, yPixel,
+    
+    percentX, percentY,
+        mathX, mathY;
+
+c.clearRect(0, 0, canvas.width, canvas.height);
+c.beginPath();
+
+c.moveTo(0,(canvas.height)/2);
+c.lineTo(canvas.width,canvas.height/2);
+c.lineWidth=0.5;
+c.stroke();
+c.beginPath();
+c.moveTo(canvas.width/2,0);
+c.lineTo(canvas.width/2,canvas.height);
+c.lineWidth=0.5;
+c.stroke();
+c.beginPath();
+c.lineWidth=1;
+
+for(i = 0; i < n; i++) {
+
+  percentX = (i / (n - 1));
+  mathX = (percentX * (xMax - xMin) + xMin);
+ 
+  mathY = evaluateMathExpr(mathX);
+  percentY = ((mathY - yMin) / (yMax - yMin));
+  
+  percentY = 1 - percentY;
+  
+  xPixel = percentX * canvas.width;
+  yPixel = percentY * canvas.height;
+
+  c.lineTo(xPixel, yPixel);
+}
+c.stroke();
+}
+
+function evaluateMathExpr(mathX){
+scope.x = 1*mathX;
+
+return tree.eval();
+}
+
+
+function getHashValue(){
+return location.hash.substr(1);
+}
+
+function setHashValue(value){
+return location.hash = value;
+}
+
+
+        }
+
+    </script>
+
+
+    <canvas width="500" height="500" id="myCanvas">
+        <!-- <script>
+            var canvas=document.getElementById('myCanvas'),
+            c=canvas.getContext('2d');
+            c.beginPath();
+            c.moveTo(0,250);
+            c.lineT0(500,250);
+            c.lineWidth=5;
+            c.stroke()
+        </script> -->
+    </canvas>
+  </body>
+</html>
